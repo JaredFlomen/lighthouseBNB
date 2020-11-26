@@ -9,14 +9,6 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
-// const limit = process.argv[2] || 10;
-// values = [limit];
-// const sqlQuery = `SELECT * FROM properties LIMIT 10`;
-
-// pool.query(sqlQuery, values)
-// .then(res => {console.log(res)})
-// }).catch(err => console.error('query error', err.stack));
-
 const getAllProperties = function(options, limit = 10) {
   return pool.query(`
   SELECT * FROM properties
