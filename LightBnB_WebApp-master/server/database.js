@@ -110,22 +110,39 @@ const getAllProperties = function(options, limit = 10) {
 
   //Checking if the options object has an owner
   if (options.owner_id) {
-    sqlParams.push(`${options.owner_id}`);
-    sqlQuery += `WHERE owner_id = $${sqlParams.length}`;
+    if (sqlParams.length >= 1) {
+      sqlParams.push(`${options.owner_id}`);
+      sqlQuery += `AND owner_id = $${sqlParams.length}`;
+    } else {
+      sqlParams.push(`${options.owner_id}`);
+      sqlQuery += `WHERE owner_id = $${sqlParams.length}`;
+    }
   }
 
   //Properties within a price range
   if (options.minimum_price_per_night && options.maximum_price_per_night) {
-    sqlParams.push(`${options.minimum_price_per_night}`);
-    sqlQuery += `WHERE properties.cost_per_night >= $${sqlParams.length}`;
-    sqlParams.push(`${options.maximum_price_per_night}`);
-    sqlQuery += `AND properties.cost_per_night <= $${sqlParams.length}`;
+    if (sqlParams.length >= 1) {
+      sqlParams.push(`${options.minimum_price_per_night}`);
+      sqlQuery += `AND cost_per_night >= $${sqlParams.length}`;
+      sqlParams.push(`${options.maximum_price_per_night}`);
+      sqlQuery += ` AND cost_per_night <= $${sqlParams.length}`;
+    } else {
+      sqlParams.push(`${options.minimum_price_per_night}`);
+      sqlQuery += `WHERE cost_per_night >= $${sqlParams.length}`;
+      sqlParams.push(`${options.maximum_price_per_night}`);
+      sqlQuery += ` AND cost_per_night <= $${sqlParams.length}`;
+    }
   }
 
   //Checking if the options object has a mimumum rating
   if (options.minimum_rating) {
-    sqlParams.push(`${options.minimum_rating}`);
-    sqlQuery += `WHERE property_reviews.rating >= $${sqlParams.length}`;
+    if (sqlParams.length >= 1) {
+      sqlParams.push(`${options.minimum_rating}`);
+      sqlQuery += `AND property_reviews.rating >= $${sqlParams.length}`;
+    } else {
+      sqlParams.push(`${options.minimum_rating}`);
+      sqlQuery += `WHERE property_reviews.rating >= $${sqlParams.length}`;
+    }
   }
 
   //Query information that comes after the WHERE clause
