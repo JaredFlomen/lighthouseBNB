@@ -9,14 +9,6 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
-const getAllProperties = function(options, limit = 10) {
-  return pool.query(`
-  SELECT * FROM properties
-  LIMIT $1
-  `, [limit])
-  .then(res => res.rows);
-}
-
 /// Users
 
 /**
@@ -24,17 +16,25 @@ const getAllProperties = function(options, limit = 10) {
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
  */
+// const getUserWithEmail = function(email) {
+//   let user;
+//   for (const userId in users) {
+//     user = users[userId];
+//     if (user.email.toLowerCase() === email.toLowerCase()) {
+//       break;
+//     } else {
+//       user = null;
+//     }
+//   }
+//   return Promise.resolve(user);
+// }
+
 const getUserWithEmail = function(email) {
-  let user;
-  for (const userId in users) {
-    user = users[userId];
-    if (user.email.toLowerCase() === email.toLowerCase()) {
-      break;
-    } else {
-      user = null;
-    }
-  }
-  return Promise.resolve(user);
+  return pool.query(`
+  SELECT * FROM users
+  WHERE email = '${email}'`)
+  .then(res => res.rows)
+  .catch(err => null)
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -43,9 +43,17 @@ exports.getUserWithEmail = getUserWithEmail;
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
+// const getUserWithId = function(id) {
+//   return Promise.resolve(users[id]);
+// }
 const getUserWithId = function(id) {
-  return Promise.resolve(users[id]);
+  return pool.query(`
+  SELECT * FROM users
+  WHERE id = '${id}'`)
+  .then(res => res.rows)
+  .catch(err => null) 
 }
+
 exports.getUserWithId = getUserWithId;
 
 
@@ -82,6 +90,13 @@ exports.getAllReservations = getAllReservations;
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
+const getAllProperties = function(options, limit = 10) {
+  return pool.query(`
+  SELECT * FROM properties
+  LIMIT $1
+  `, [limit])
+  .then(res => res.rows);
+}
 // const getAllProperties = function(options, limit = 10) {
 //   const limitedProperties = {};
 //   for (let i = 1; i <= limit; i++) {
