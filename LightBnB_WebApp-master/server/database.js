@@ -66,7 +66,6 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  // return getAllProperties(null, 2);
   const sqlQuery = `SELECT reservations.*, properties.*, avg(property_reviews.rating) AS average_rating
   FROM property_reviews
   JOIN reservations 
@@ -94,19 +93,55 @@ exports.getAllReservations = getAllReservations;
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
-  return pool.query(`
-  SELECT * FROM properties
-  LIMIT $1
-  `, limit)
-  .then(res => res.rows);
+  //Array to hold parameters for the query
+  const sqlParams = [];
+
+  //Query information before the WHERE clause
+  let sqlQuery = `SELECT properties.*, avg(property_reviews.rating) AS average_rating
+  FROM properties
+  JOIN property_reviews ON properties.id = property_id
+  `;
+
+  //Checking if the options object has a city
+  if (options.city) {
+    sqlParams.push(`%${options.city}%`);
+    sqlQuery += `WHERE city LIKE $${sqlParams.length}`;
+  }
+
+  //Checking if the options object has an owner
+  if (options.owner_id) {
+    sqlParams.push(`${options.owner_id}`);
+    sqlQuery += `WHERE owner_id = $${sqlParams.length}`;
+  }
+
+  //Properties within a price range
+  if (options.minimum_price_per_night && options.maximum_price_per_night) {
+    sqlParams.push(`${options.minimum_price_per_night}`);
+    sqlQuery += `WHERE properties.cost_per_night >= $${sqlParams.length}`;
+    sqlParams.push(`${options.maximum_price_per_night}`);
+    sqlQuery += `AND properties.cost_per_night <= $${sqlParams.length}`;
+  }
+
+  //Checking if the options object has a mimumum rating
+  if (options.minimum_rating) {
+    sqlParams.push(`${options.minimum_rating}`);
+    sqlQuery += `WHERE property_reviews.rating >= $${sqlParams.length}`;
+  }
+
+  //Query information that comes after the WHERE clause
+  sqlParams.push(limit);
+  sqlQuery += `GROUP BY properties.id
+  ORDER BY cost_per_night
+  LIMIT $${sqlParams.length};`;
+
+  //Check to ensure everything is correct
+  console.log(sqlQuery, sqlParams)
+
+  //Run the query
+  return pool.query(sqlQuery, sqlParams)
+  .then(res => res.rows)
+  .catch(err => null);
 }
-// const getAllProperties = function(options, limit = 10) {
-//   const limitedProperties = {};
-//   for (let i = 1; i <= limit; i++) {
-//     limitedProperties[i] = properties[i];
-//   }
-//   return Promise.resolve(limitedProperties);
-// }
 
 exports.getAllProperties = getAllProperties;
 
